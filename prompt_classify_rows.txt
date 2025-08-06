@@ -1,0 +1,15 @@
+Определи тип и подтип для каждой строки из строительной сметы в предоставленном списке.
+
+Список строк:
+{input_list}
+
+Для каждой строки определи:
+- type: 'equipment', 'work', 'complex', 'section', 'info'
+- work_type: 'montage', 'demontage', 'pnr', 'delivery', 'project', 'general', или null
+
+Ответ дай строго в формате JSON-массива, где каждый элемент - это объект с полями "id" (номер строки из списка), "type" и "work_type".
+Например:
+[
+  {{"id": 1, "type": "work", "work_type": "montage"}},
+  {{"id": 2, "type": "equipment", "work_type": null}}
+] 

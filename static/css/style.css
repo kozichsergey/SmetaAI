@@ -1,0 +1,252 @@
+/* Основные стили */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+}
+
+/* Боковая панель */
+.sidebar {
+    min-height: 100vh;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+}
+
+.sidebar .nav-link {
+    color: #adb5bd;
+    padding: 0.75rem 1rem;
+    border-radius: 0.375rem;
+    margin: 0.25rem 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.sidebar .nav-link:hover {
+    color: #fff;
+    background-color: rgba(255,255,255,0.1);
+}
+
+.sidebar .nav-link.active {
+    color: #fff;
+    background-color: #007bff;
+}
+
+.sidebar .nav-link i {
+    margin-right: 0.5rem;
+    width: 20px;
+}
+
+/* Карточки */
+.card {
+    border: none;
+    border-radius: 0.75rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+}
+
+/* Toolbar кнопки */
+.btn-toolbar .btn-group {
+    gap: 0.5rem;
+}
+
+.btn-toolbar .btn {
+    vertical-align: middle;
+    line-height: 1.5;
+}
+
+#cancel-btn {
+    white-space: nowrap;
+}
+
+/* Принудительное закругление для кнопок в toolbar */
+#refresh-btn,
+#cancel-btn {
+    border-radius: 0.375rem !important;
+}
+
+.card-header {
+    background-color: #fff;
+    border-bottom: 1px solid #dee2e6;
+    border-radius: 0.75rem 0.75rem 0 0 !important;
+}
+
+/* Кнопки */
+.btn {
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.15);
+}
+
+.btn-lg {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+}
+
+/* Прогресс бар */
+.progress {
+    height: 0.75rem;
+    border-radius: 0.5rem;
+    background-color: #e9ecef;
+}
+
+.progress-bar {
+    border-radius: 0.5rem;
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    transition: width 0.6s ease;
+}
+
+/* Списки файлов */
+.file-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.file-item {
+    padding: 0.75rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+    background-color: #fff;
+    transition: all 0.3s ease;
+}
+
+.file-item:hover {
+    background-color: #f8f9fa;
+    border-color: #007bff;
+}
+
+.file-item .file-name {
+    font-weight: 500;
+    color: #495057;
+}
+
+.file-item .file-info {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Статусные индикаторы */
+.status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 0.5rem;
+}
+
+.status-processing {
+    background-color: #ffc107;
+    animation: pulse 1.5s infinite;
+}
+
+.status-success {
+    background-color: #28a745;
+}
+
+.status-error {
+    background-color: #dc3545;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 100;
+        padding: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease-in-out;
+    }
+    
+    .sidebar.show {
+        transform: translateX(0);
+    }
+    
+    main {
+        margin-left: 0;
+    }
+}
+
+/* Дополнительные стили для иконок */
+.fa-2x {
+    font-size: 2em;
+}
+
+.text-muted {
+    color: #6c757d !important;
+}
+
+/* Стили для уведомлений */
+.alert {
+    border-radius: 0.5rem;
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+}
+
+/* Стили для таблиц */
+.table {
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.table th {
+    border-top: none;
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+/* Кастомные цвета для карточек */
+.bg-primary {
+    background: linear-gradient(45deg, #007bff, #0056b3) !important;
+}
+
+.bg-success {
+    background: linear-gradient(45deg, #28a745, #1e7e34) !important;
+}
+
+.bg-info {
+    background: linear-gradient(45deg, #17a2b8, #138496) !important;
+}
+
+.bg-warning {
+    background: linear-gradient(45deg, #ffc107, #e0a800) !important;
+}
+
+/* Стили для активных вкладок */
+.nav-link.active {
+    background-color: #007bff !important;
+    color: white !important;
+    border-radius: 5px;
+}
+
+.nav-link:hover {
+    background-color: #f8f9fa;
+    border-radius: 5px;
+} 

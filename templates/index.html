@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmetaAI - Админ-панель</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Боковая панель -->
+            <nav class="col-md-3 col-lg-2 d-md-block bg-dark sidebar">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <h4 class="text-white">
+                            <i class="fas fa-brain"></i> SmetaAI
+                        </h4>
+                        <p class="text-muted">Система автоматизации смет</p>
+                    </div>
+                    
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#dashboard">
+                                <i class="fas fa-tachometer-alt"></i> Дашборд
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#files">
+                                <i class="fas fa-folder"></i> Файлы
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#logs">
+                                <i class="fas fa-list"></i> Логи
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#brain-section">
+                                <i class="fas fa-brain"></i> База знаний
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#settings">
+                                <i class="fas fa-cog"></i> Настройки
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Основной контент -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Панель управления SmetaAI</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="refresh-btn" onclick="refreshStatus()" style="display: none;">
+                                <i class="fas fa-sync-alt"></i> Обновить
+                            </button>
+                            <button type="button" class="btn btn-sm btn-danger" id="cancel-btn" onclick="cancelCurrentTask()" style="display: none;">
+                                <i class="fas fa-stop"></i> Остановить
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Уведомление об отсутствии API ключа -->
+                <div id="api-key-warning" class="alert alert-warning" style="display: none;">
+                    <strong>Внимание!</strong> Не указан OpenAI API ключ в настройках. Точность распознавания колонок снижена.
+                </div>
+
+                <!-- Прогресс обработки (глобальный) -->
+                <div id="progress-section" class="card mb-4" style="display: none;">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0" id="progress-task-name">Выполнение задачи...</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="progress" style="height: 30px;">
+                            <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <p id="progress-message" class="mt-2 text-muted"></p>
+                    </div>
+                </div>
+
+                <!-- Секция: Дашборд -->
+                <div id="dashboard-section">
+                    <!-- Статус системы -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card text-white bg-primary">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h6 class="card-title">Файлы для обработки</h6>
+                                            <h3 id="input-files-count">0</h3>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="fas fa-file-excel fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-white bg-success">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h6 class="card-title">Записей в базе</h6>
+                                            <h3 id="raw-data-count">0</h3>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="fas fa-database fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-white bg-info">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h6 class="card-title">Обработано файлов</h6>
+                                            <h3 id="processed-files-count">0</h3>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="fas fa-check-circle fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-white bg-warning">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h6 class="card-title">База знаний</h6>
+                                            <h3 id="brain-count">0</h3>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="fas fa-brain fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Кнопки управления -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-cogs"></i> Управление системой
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <button class="btn btn-primary btn-lg w-100 mb-3" onclick="startTask('/api/ingest')" id="ingest-btn">
+                                                <i class="fas fa-download"></i> Загрузить данные
+                                            </button>
+                                            <p class="text-muted">Обработает все Excel-файлы из папки input_files</p>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <button id="optimize-btn" class="btn btn-secondary btn-lg w-100 mb-3" onclick="startTask('/api/optimize')">
+                                                <i class="fas fa-magic"></i> Оптимизировать базу знаний
+                                            </button>
+                                            <p class="text-muted">Создаст очищенную базу знаний с помощью AI</p>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <button class="btn btn-warning btn-lg w-100 mb-3" onclick="startTask('/api/calculate')" id="calculate-btn">
+                                                <i class="fas fa-calculator"></i> Рассчитать сметы
+                                            </button>
+                                            <p class="text-muted">Заполнит цены для всех файлов в папке 'calculate'</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Секция: Файлы -->
+                <div id="files-section" style="display: none;">
+                    <div class="row">
+                        <!-- Файлы для обучения -->
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-graduation-cap"></i> Файлы для обучения (input)
+                                    </h5>
+                                </div>
+                                <ul class="list-group list-group-flush" id="input-files-list">
+                                    <!-- Список будет загружен сюда -->
+                                </ul>
+                            </div>
+                        </div>
+                        <!-- Файлы для расчета -->
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-calculator"></i> Файлы для расчета (calculate)
+                                    </h5>
+                                </div>
+                                <ul class="list-group list-group-flush" id="calculate-files-list">
+                                    <!-- Список будет загружен сюда -->
+                                </ul>
+                            </div>
+                        </div>
+                        <!-- Готовые сметы -->
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-check-circle"></i> Готовые сметы (output)
+                                    </h5>
+                                </div>
+                                <ul class="list-group list-group-flush" id="output-files-list">
+                                    <!-- Список будет загружен сюда -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Секция: Логи -->
+                <div id="logs-section" style="display: none;">
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-list"></i> История AI-оптимизации
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <h6>История запусков</h6>
+                                            <div id="ai-logs-list">
+                                                <p class="text-muted">Загрузка логов...</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <h6>Статистика последней оптимизации</h6>
+                                            <div id="ai-stats">
+                                                <p class="text-muted">Нет данных</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Секция: База знаний -->
+                <div id="brain-section" style="display: none;">
+                    <ul class="nav nav-tabs mb-3" id="brainTabs">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="raw-tab" data-bs-toggle="tab" href="#raw-table">Полная база</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="knowledge-tab" data-bs-toggle="tab" href="#knowledge-table">База знаний</a>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="raw-table">
+                            <div class="mb-3">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <input type="text" class="form-control" id="rawSearchInput" placeholder="Поиск по наименованию..." onkeyup="filterRawTable()">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <select class="form-select" id="rawPriceFilter" onchange="filterRawTable()">
+                                            <option value="">Все записи</option>
+                                            <option value="material">С ценой материала</option>
+                                            <option value="work">С ценой работы</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <select class="form-select" id="rawFileFilter" onchange="filterRawTable()">
+                                            <option value="">Все файлы</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-2">
+                                <span class="text-muted" id="rawTableCounter">Показано: 0 записей</span>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered" id="rawTable">
+                                    <thead><tr><th>Наименование</th><th>Ед. изм.</th><th>Цена материала</th><th>Цена работы</th><th>Источник</th><th>Действия</th></tr></thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="knowledge-table">
+                            <div class="mb-3">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control" id="brainSearchInput" placeholder="Поиск по наименованию..." onkeyup="filterBrainTable()">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <select class="form-select" id="brainPriceFilter" onchange="filterBrainTable()">
+                                            <option value="">Все записи</option>
+                                            <option value="material">С ценой материала</option>
+                                            <option value="work">С ценой работы</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-2">
+                                <button class="btn btn-outline-success btn-sm" onclick="exportBrain()">Экспортировать в Excel</button>
+                                <label class="btn btn-outline-info btn-sm mb-0">
+                                    Импортировать из Excel <input type="file" id="importBrainInput" style="display:none" onchange="importBrain(event)">
+                                </label>
+                                <button class="btn btn-outline-secondary btn-sm" onclick="loadBrainData()">Обновить</button>
+                                <span class="text-muted ms-3" id="brainTableCounter">Показано: 0 записей</span>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered" id="brainTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Наименование</th>
+                                            <th>Ед. изм.</th>
+                                            <th>Цена материала</th>
+                                            <th>Цена работы</th>
+                                            <th>Варианты цен</th>
+                                            <th>Размер кластера</th>
+                                            <th>Источники</th>
+                                            <th>Действия</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Секция: Настройки -->
+                <div id="settings-section" style="display: none;">
+                     <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-cog"></i> Настройки системы
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6>OpenAI API</h6>
+                                            <div class="mb-3">
+                                                <label for="openai-key" class="form-label">API Ключ</label>
+                                                <input type="password" class="form-control" id="openai-key" placeholder="sk-...">
+                                                <div class="form-text">Введите ваш OpenAI API ключ для AI оптимизации</div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="openai-model" class="form-label">Модель OpenAI</label>
+                                                <select class="form-select" id="openai-model">
+                                                    <option value="o4-mini-2025-04-16">o4-mini-2025-04-16 (рекомендуется)</option>
+                                                    <option value="o3-2025-04-16">o3-2025-04-16</option>
+                                                    <option value="gpt-4.1-2025-04-14">gpt-4.1-2025-04-14</option>
+                                                </select>
+                                                <div class="form-text">Выберите модель для AI-классификации и кластеризации.</div>
+                                            </div>
+                                            <button class="btn btn-primary" onclick="saveConfig()">
+                                                <i class="fas fa-save"></i> Сохранить настройки
+                                            </button>
+                                            <hr>
+                                            <h6 class="mt-4">Опасная зона</h6>
+                                            <p class="text-muted small">Это действие необратимо и приведет к полной потере данных.</p>
+                                            <button id="clear-data-btn" class="btn btn-danger" onclick="confirmClearData()">
+                                                <i class="fas fa-trash-alt"></i> Очистить всю базу (raw_data, brain)
+                                            </button>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6>Статус</h6>
+                                            <div id="ai-status-alert" class="alert alert-secondary">
+                                                <strong>AI оптимизация:</strong> 
+                                                <span id="ai-status">Проверка...</span>
+                                            </div>
+                                            <div class="alert alert-warning">
+                                                <strong>Важно:</strong> Для использования AI необходим действующий OpenAI API ключ с положительным балансом.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Модальное окно для редактирования записи базы знаний -->
+    <div class="modal fade" id="editBrainModal" tabindex="-1" aria-labelledby="editBrainModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editBrainModalLabel">Редактировать запись базы знаний</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editBrainForm">
+                        <div class="mb-3">
+                            <label for="editBrainName" class="form-label">Наименование</label>
+                            <input type="text" class="form-control" id="editBrainName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editBrainUnit" class="form-label">Единица измерения</label>
+                            <input type="text" class="form-control" id="editBrainUnit">
+                        </div>
+                        
+                        <!-- Секция анализа цен -->
+                        <div id="priceAnalysisSection" class="mb-4" style="display: none;">
+                            <h6 class="text-primary">Анализ цен</h6>
+                            
+                            <!-- Анализ цен материала -->
+                            <div id="materialPriceAnalysis" class="mb-3" style="display: none;">
+                                <label class="form-label">Варианты цен материала</label>
+                                <div id="materialPricesList" class="border rounded p-2 mb-2 bg-light"></div>
+                                <div id="materialPriceStats" class="small text-muted"></div>
+                            </div>
+                            
+                            <!-- Анализ цен работы -->
+                            <div id="workPriceAnalysis" class="mb-3" style="display: none;">
+                                <label class="form-label">Варианты цен работы</label>
+                                <div id="workPricesList" class="border rounded p-2 mb-2 bg-light"></div>
+                                <div id="workPriceStats" class="small text-muted"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editBrainMaterialPrice" class="form-label">Итоговая цена материала (руб.)</label>
+                                    <input type="number" class="form-control" id="editBrainMaterialPrice" min="0" step="0.01">
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" id="editBrainMaterialApproved">
+                                        <label class="form-check-label text-success" for="editBrainMaterialApproved">
+                                            <i class="fas fa-check-circle"></i> Проверена и одобрена
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editBrainWorkPrice" class="form-label">Итоговая цена работы (руб.)</label>
+                                    <input type="number" class="form-control" id="editBrainWorkPrice" min="0" step="0.01">
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" id="editBrainWorkApproved">
+                                        <label class="form-check-label text-success" for="editBrainWorkApproved">
+                                            <i class="fas fa-check-circle"></i> Проверена и одобрена
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Источники</label>
+                            <div id="editBrainSources" class="form-text text-muted"></div>
+                        </div>
+                        <input type="hidden" id="editBrainIndex">
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger me-auto" onclick="deleteBrainItem()">
+                        <i class="fas fa-trash"></i> Удалить запись
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" onclick="saveBrainEdit()">Сохранить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для редактирования записи полной базы -->
+    <div class="modal fade" id="editRawModal" tabindex="-1" aria-labelledby="editRawModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editRawModalLabel">Редактировать запись полной базы</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editRawForm">
+                        <div class="mb-3">
+                            <label for="editRawName" class="form-label">Наименование</label>
+                            <input type="text" class="form-control" id="editRawName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editRawUnit" class="form-label">Единица измерения</label>
+                            <input type="text" class="form-control" id="editRawUnit">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editRawMaterialPrice" class="form-label">Цена материала (руб.)</label>
+                                    <input type="number" class="form-control" id="editRawMaterialPrice" min="0" step="0.01">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editRawWorkPrice" class="form-label">Цена работы (руб.)</label>
+                                    <input type="number" class="form-control" id="editRawWorkPrice" min="0" step="0.01">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Источник</label>
+                            <div id="editRawSource" class="form-text text-muted"></div>
+                        </div>
+                        <input type="hidden" id="editRawIndex">
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" onclick="saveRawEdit()">Сохранить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html> 

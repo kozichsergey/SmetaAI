@@ -1,0 +1,6 @@
+{
+  "openai_api_key": "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",
+  "openai_model": "gpt-4.1-2025-04-14",
+  "use_ai_optimization": true,
+  "price_variance_threshold": 25.0
+}
